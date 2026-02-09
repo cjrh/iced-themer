@@ -8,7 +8,7 @@ Parse TOML theme files into iced's native `Theme` type at runtime, so you can tw
 
 ```toml
 [dependencies]
-iced-themer = { git = "https://github.com/user/iced-themer" }
+iced-themer = { git = "https://github.com/cjrh/iced-themer" }
 iced = "0.14"
 ```
 
