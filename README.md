@@ -1,0 +1,124 @@
+# iced-themer
+
+> **Alpha software** — API will change. Not ready for production use.
+
+Parse TOML theme files into iced's native `Theme` type at runtime, so you can tweak colors, fonts, and per-widget styles without recompiling.
+
+## Add to your project
+
+```toml
+[dependencies]
+iced-themer = { git = "https://github.com/user/iced-themer" }
+iced = "0.14"
+```
+
+## Theme file
+
+```toml
+name = "Ocean Breeze"
+
+[palette]
+background = "#1B2838"
+text = "#C7D5E0"
+primary = "#66C0F4"
+success = "#4CAF50"
+warning = "#FFC107"
+danger = "#F44336"
+
+[font]
+family = "Arial"
+weight = "normal"
+
+[button]
+background = "#66C0F4"
+text-color = "#FFFFFF"
+border-radius = 4.0
+
+[button.hovered]
+background = "#77D0FF"
+
+[button.pressed]
+background = "#5590C0"
+
+[button.disabled]
+background = "#445566"
+text-color = "#888888"
+
+# For more see the `theme.toml` in the example/ directory.
+```
+
+Every widget section is optional — omit it and the iced default applies. Status sub-tables (`hovered`, `pressed`, etc.) inherit from the base and only override what they specify.
+
+## Usage
+
+```rust
+use iced::widget::button;
+use iced::{Element, Theme};
+use iced_themer::ThemeConfig;
+
+fn main() -> iced::Result {
+    let config = ThemeConfig::from_file("theme.toml")
+        .expect("failed to load theme");
+
+    let theme = config.theme();   // cheap Arc clone
+    let font = config.font();     // Option<Font>
+    let btn = config.button().cloned();
+
+    let app = iced::application(|| App { btn }, App::update, App::view)
+        .title("My App")
+        .theme(move |_: &App| -> Theme { theme.clone() });
+
+    match font {
+        Some(f) => app.default_font(f).run(),
+        None => app.run(),
+    }
+}
+
+struct App {
+    btn: Option<iced_themer::style::ButtonStyle>,
+}
+
+impl App {
+    fn update(&mut self, _msg: ()) {}
+
+    fn view(&self) -> Element<'_, ()> {
+        let mut b = button("Click me").on_press(());
+        if let Some(s) = &self.btn {
+            let s = s.clone();
+            b = b.style(move |_theme, status| {
+                let a = match status {
+                    button::Status::Active  => s.active(),
+                    button::Status::Hovered => s.hovered(),
+                    button::Status::Pressed => s.pressed(),
+                    button::Status::Disabled => s.disabled(),
+                };
+                button::Style {
+                    background: a.background,
+                    text_color: a.text_color,
+                    border: a.border,
+                    shadow: a.shadow,
+                    snap: false,
+                }
+            });
+        }
+        b.into()
+    }
+}
+```
+
+The pattern is the same for every widget: clone the style into the `.style()` closure, match on the iced status enum, and map the fields.
+
+## Supported widgets
+
+- button
+- checkbox
+- container
+- progress-bar
+- radio
+- slider
+- text-input
+- toggler
+
+## License
+
+MIT
