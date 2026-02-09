@@ -1,4 +1,5 @@
-use iced_core::{Background, Border, Color};
+use iced_core::{Background, Color, Theme};
+use iced_widget::text_input;
 use serde::Deserialize;
 
 use crate::color::HexColor;
@@ -37,7 +38,7 @@ pub(crate) struct TextInputSection {
 
 impl TextInputSection {
     pub fn resolve(self) -> TextInputStyle {
-        let active = into_appearance(self.base);
+        let active = into_native(self.base);
         let focused = resolve_status(self.base, self.focused.as_ref());
         let disabled = resolve_status(self.base, self.disabled.as_ref());
 
@@ -45,55 +46,46 @@ impl TextInputSection {
     }
 }
 
-fn resolve_status(base: TextInputFieldsRaw, status: Option<&TextInputFieldsRaw>) -> TextInputAppearance {
+fn resolve_status(base: TextInputFieldsRaw, status: Option<&TextInputFieldsRaw>) -> text_input::Style {
     match status {
-        Some(over) => into_appearance(base.merge(over)),
-        None => into_appearance(base),
+        Some(over) => into_native(base.merge(over)),
+        None => into_native(base),
     }
 }
 
-fn into_appearance(f: TextInputFieldsRaw) -> TextInputAppearance {
-    TextInputAppearance {
+fn into_native(f: TextInputFieldsRaw) -> text_input::Style {
+    text_input::Style {
         background: Background::Color(f.background.map(|c| c.0).unwrap_or(Color::TRANSPARENT)),
         border: resolve_border(f.border_width, f.border_color, f.border_radius),
-        icon_color: f.icon_color.map(|c| c.0).unwrap_or(Color::BLACK),
-        placeholder_color: f.placeholder_color.map(|c| c.0).unwrap_or(Color::from_rgba8(0x80, 0x80, 0x80, 1.0)),
-        value_color: f.value_color.map(|c| c.0).unwrap_or(Color::BLACK),
-        selection_color: f.selection_color.map(|c| c.0).unwrap_or(Color::from_rgba8(0x33, 0x99, 0xFF, 0.3)),
+        icon: f.icon_color.map(|c| c.0).unwrap_or(Color::BLACK),
+        placeholder: f.placeholder_color.map(|c| c.0).unwrap_or(Color::from_rgba8(0x80, 0x80, 0x80, 1.0)),
+        value: f.value_color.map(|c| c.0).unwrap_or(Color::BLACK),
+        selection: f.selection_color.map(|c| c.0).unwrap_or(Color::from_rgba8(0x33, 0x99, 0xFF, 0.3)),
     }
 }
 
 // -- Layer 3: Public types --
 
-/// Pre-resolved text input style with an appearance for each status variant.
-#[derive(Debug, Clone)]
+/// Pre-resolved text input style with a native `iced_widget` style for each status variant.
+#[derive(Debug, Clone, Copy)]
 pub struct TextInputStyle {
-    active:   TextInputAppearance,
-    focused:  TextInputAppearance,
-    disabled: TextInputAppearance,
+    active:   text_input::Style,
+    focused:  text_input::Style,
+    disabled: text_input::Style,
 }
 
 impl TextInputStyle {
-    pub fn active(&self) -> &TextInputAppearance {
-        &self.active
+    /// Returns a closure suitable for passing to `.style()` on a text input widget.
+    ///
+    /// The `Hovered` status maps to the active style, and `Focused { is_hovered: _ }`
+    /// maps to the focused style, matching iced's status semantics.
+    pub fn style_fn(&self) -> impl Fn(&Theme, text_input::Status) -> text_input::Style + Copy {
+        let s = *self;
+        move |_theme, status| match status {
+            text_input::Status::Active  => s.active,
+            text_input::Status::Hovered => s.active,
+            text_input::Status::Focused { .. } => s.focused,
+            text_input::Status::Disabled => s.disabled,
+        }
     }
-
-    pub fn focused(&self) -> &TextInputAppearance {
-        &self.focused
-    }
-
-    pub fn disabled(&self) -> &TextInputAppearance {
-        &self.disabled
-    }
-}
-
-/// Visual properties for a text input. Fields mirror `iced_widget::text_input::Style`.
-#[derive(Debug, Clone, Copy)]
-pub struct TextInputAppearance {
-    pub background: Background,
-    pub border: Border,
-    pub icon_color: Color,
-    pub placeholder_color: Color,
-    pub value_color: Color,
-    pub selection_color: Color,
 }

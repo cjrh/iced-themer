@@ -1,4 +1,5 @@
-use iced_core::{Background, Border, Color, Shadow};
+use iced_core::{Background, Color, Theme};
+use iced_widget::button;
 use serde::Deserialize;
 
 use crate::color::HexColor;
@@ -40,7 +41,7 @@ pub(crate) struct ButtonSection {
 
 impl ButtonSection {
     pub fn resolve(self) -> ButtonStyle {
-        let active = into_appearance(self.base);
+        let active = into_native(self.base);
         let hovered = resolve_status(self.base, self.hovered.as_ref());
         let pressed = resolve_status(self.base, self.pressed.as_ref());
         let disabled = resolve_status(self.base, self.disabled.as_ref());
@@ -49,56 +50,43 @@ impl ButtonSection {
     }
 }
 
-fn resolve_status(base: ButtonFieldsRaw, status: Option<&ButtonFieldsRaw>) -> ButtonAppearance {
+fn resolve_status(base: ButtonFieldsRaw, status: Option<&ButtonFieldsRaw>) -> button::Style {
     match status {
-        Some(over) => into_appearance(base.merge(over)),
-        None => into_appearance(base),
+        Some(over) => into_native(base.merge(over)),
+        None => into_native(base),
     }
 }
 
-fn into_appearance(f: ButtonFieldsRaw) -> ButtonAppearance {
-    ButtonAppearance {
+fn into_native(f: ButtonFieldsRaw) -> button::Style {
+    button::Style {
         background: f.background.map(|c| Background::Color(c.0)),
         text_color: f.text_color.map(|c| c.0).unwrap_or(Color::BLACK),
         border: resolve_border(f.border_width, f.border_color, f.border_radius),
         shadow: resolve_shadow(f.shadow_color, f.shadow_offset_x, f.shadow_offset_y, f.shadow_blur_radius),
+        snap: false,
     }
 }
 
 // -- Layer 3: Public types --
 
-/// Pre-resolved button style with an appearance for each status variant.
-#[derive(Debug, Clone)]
+/// Pre-resolved button style with a native `iced_widget` style for each status variant.
+#[derive(Debug, Clone, Copy)]
 pub struct ButtonStyle {
-    active:   ButtonAppearance,
-    hovered:  ButtonAppearance,
-    pressed:  ButtonAppearance,
-    disabled: ButtonAppearance,
+    active:   button::Style,
+    hovered:  button::Style,
+    pressed:  button::Style,
+    disabled: button::Style,
 }
 
 impl ButtonStyle {
-    pub fn active(&self) -> &ButtonAppearance {
-        &self.active
+    /// Returns a closure suitable for passing to `.style()` on a button widget.
+    pub fn style_fn(&self) -> impl Fn(&Theme, button::Status) -> button::Style + Copy {
+        let s = *self;
+        move |_theme, status| match status {
+            button::Status::Active  => s.active,
+            button::Status::Hovered => s.hovered,
+            button::Status::Pressed => s.pressed,
+            button::Status::Disabled => s.disabled,
+        }
     }
-
-    pub fn hovered(&self) -> &ButtonAppearance {
-        &self.hovered
-    }
-
-    pub fn pressed(&self) -> &ButtonAppearance {
-        &self.pressed
-    }
-
-    pub fn disabled(&self) -> &ButtonAppearance {
-        &self.disabled
-    }
-}
-
-/// Visual properties for a button. Fields mirror `iced_widget::button::Style`.
-#[derive(Debug, Clone, Copy)]
-pub struct ButtonAppearance {
-    pub background: Option<Background>,
-    pub text_color: Color,
-    pub border: Border,
-    pub shadow: Shadow,
 }

@@ -1155,6 +1155,7 @@ name = "iced-themer"
 version = "0.1.0"
 dependencies = [
  "iced_core",
+ "iced_widget",
  "serde",
  "thiserror 2.0.18",
  "toml",

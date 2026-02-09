@@ -1,8 +1,8 @@
 //! Per-widget style types parsed from TOML.
 //!
-//! Each widget module provides a `Style` type with pre-resolved appearances for
-//! every status variant. Users match on iced's status enums and copy fields into
-//! the corresponding `iced_widget` style structs.
+//! Each widget module provides a `Style` type with pre-resolved native
+//! `iced_widget` styles for every status variant. Call `style_fn()` and pass
+//! the result directly to the widget's `.style()` builder method.
 
 mod button;
 mod checkbox;
@@ -13,14 +13,14 @@ mod slider;
 mod text_input;
 mod toggler;
 
-pub use button::{ButtonAppearance, ButtonStyle};
-pub use checkbox::{CheckboxAppearance, CheckboxStyle};
-pub use container::{ContainerAppearance, ContainerStyle};
-pub use progress_bar::{ProgressBarAppearance, ProgressBarStyle};
-pub use radio::{RadioAppearance, RadioStyle};
-pub use slider::{HandleShapeKind, SliderAppearance, SliderStyle};
-pub use text_input::{TextInputAppearance, TextInputStyle};
-pub use toggler::{TogglerAppearance, TogglerStyle};
+pub use button::ButtonStyle;
+pub use checkbox::CheckboxStyle;
+pub use container::ContainerStyle;
+pub use progress_bar::ProgressBarStyle;
+pub use radio::RadioStyle;
+pub use slider::SliderStyle;
+pub use text_input::TextInputStyle;
+pub use toggler::TogglerStyle;
 
 pub(crate) use button::ButtonSection;
 pub(crate) use checkbox::CheckboxSection;

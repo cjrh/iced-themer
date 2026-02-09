@@ -1,4 +1,5 @@
-use iced_core::{Background, Border, Color, Shadow};
+use iced_core::{Background, Theme};
+use iced_widget::container;
 use serde::Deserialize;
 
 use crate::color::HexColor;
@@ -37,36 +38,30 @@ pub(crate) struct ContainerSection {
 
 impl ContainerSection {
     pub fn resolve(self) -> ContainerStyle {
-        ContainerStyle(into_appearance(self.base))
+        ContainerStyle(into_native(self.base))
     }
 }
 
-fn into_appearance(f: ContainerFieldsRaw) -> ContainerAppearance {
-    ContainerAppearance {
+fn into_native(f: ContainerFieldsRaw) -> container::Style {
+    container::Style {
         background: f.background.map(|c| Background::Color(c.0)),
         text_color: f.text_color.map(|c| c.0),
         border: resolve_border(f.border_width, f.border_color, f.border_radius),
         shadow: resolve_shadow(f.shadow_color, f.shadow_offset_x, f.shadow_offset_y, f.shadow_blur_radius),
+        snap: false,
     }
 }
 
 // -- Layer 3: Public types --
 
-/// Pre-resolved container style. Mirrors `iced_widget::container::Style`.
-#[derive(Debug, Clone)]
-pub struct ContainerStyle(ContainerAppearance);
+/// Pre-resolved container style.
+#[derive(Debug, Clone, Copy)]
+pub struct ContainerStyle(container::Style);
 
 impl ContainerStyle {
-    pub fn appearance(&self) -> &ContainerAppearance {
-        &self.0
+    /// Returns a closure suitable for passing to `.style()` on a container widget.
+    pub fn style_fn(&self) -> impl Fn(&Theme) -> container::Style + Copy {
+        let s = self.0;
+        move |_theme| s
     }
-}
-
-/// Visual properties for a container. Fields mirror `iced_widget::container::Style`.
-#[derive(Debug, Clone, Copy)]
-pub struct ContainerAppearance {
-    pub background: Option<Background>,
-    pub text_color: Option<Color>,
-    pub border: Border,
-    pub shadow: Shadow,
 }

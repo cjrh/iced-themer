@@ -1,4 +1,5 @@
-use iced_core::{border::Radius, Background, Border, Color};
+use iced_core::{Background, Border, Color, Theme};
+use iced_widget::slider;
 use serde::Deserialize;
 
 use crate::color::HexColor;
@@ -49,7 +50,7 @@ pub(crate) enum HandleShapeKindRaw {
 
 impl SliderSection {
     pub fn resolve(self) -> SliderStyle {
-        let active = into_appearance(self.base);
+        let active = into_native(self.base);
         let hovered = resolve_status(self.base, self.hovered.as_ref());
         let dragged = resolve_status(self.base, self.dragged.as_ref());
 
@@ -57,82 +58,67 @@ impl SliderSection {
     }
 }
 
-fn resolve_status(base: SliderFieldsRaw, status: Option<&SliderFieldsRaw>) -> SliderAppearance {
+fn resolve_status(base: SliderFieldsRaw, status: Option<&SliderFieldsRaw>) -> slider::Style {
     match status {
-        Some(over) => into_appearance(base.merge(over)),
-        None => into_appearance(base),
+        Some(over) => into_native(base.merge(over)),
+        None => into_native(base),
     }
 }
 
-fn into_appearance(f: SliderFieldsRaw) -> SliderAppearance {
+fn into_native(f: SliderFieldsRaw) -> slider::Style {
     let rail_border_radius = f.rail_border_radius.map(RadiusRaw::into_radius).unwrap_or(0.0.into());
 
     let handle_shape = match f.handle_shape.unwrap_or(HandleShapeKindRaw::Circle) {
-        HandleShapeKindRaw::Circle => HandleShapeKind::Circle {
+        HandleShapeKindRaw::Circle => slider::HandleShape::Circle {
             radius: f.handle_radius.unwrap_or(7.0),
         },
-        HandleShapeKindRaw::Rectangle => HandleShapeKind::Rectangle {
+        HandleShapeKindRaw::Rectangle => slider::HandleShape::Rectangle {
             width: f.handle_width.unwrap_or(8.0) as u16,
             border_radius: f.handle_border_radius.map(RadiusRaw::into_radius).unwrap_or(2.0.into()),
         },
     };
 
-    SliderAppearance {
-        rail_color_1: f.rail_color_1.map(|c| c.0).unwrap_or(Color::BLACK),
-        rail_color_2: f.rail_color_2.map(|c| c.0).unwrap_or(Color::TRANSPARENT),
-        rail_width: f.rail_width.unwrap_or(4.0),
-        rail_border_radius,
-        handle_shape,
-        handle_background: Background::Color(
-            f.handle_background.map(|c| c.0).unwrap_or(Color::BLACK),
-        ),
-        handle_border: Border {
-            color: f.handle_border_color.map(|c| c.0).unwrap_or(Color::TRANSPARENT),
-            width: f.handle_border_width.unwrap_or(0.0),
-            radius: 0.0.into(),
+    slider::Style {
+        rail: slider::Rail {
+            backgrounds: (
+                Background::Color(f.rail_color_1.map(|c| c.0).unwrap_or(Color::BLACK)),
+                Background::Color(f.rail_color_2.map(|c| c.0).unwrap_or(Color::TRANSPARENT)),
+            ),
+            width: f.rail_width.unwrap_or(4.0),
+            border: Border {
+                radius: rail_border_radius,
+                ..Default::default()
+            },
+        },
+        handle: slider::Handle {
+            shape: handle_shape,
+            background: Background::Color(
+                f.handle_background.map(|c| c.0).unwrap_or(Color::BLACK),
+            ),
+            border_width: f.handle_border_width.unwrap_or(0.0),
+            border_color: f.handle_border_color.map(|c| c.0).unwrap_or(Color::TRANSPARENT),
         },
     }
 }
 
 // -- Layer 3: Public types --
 
-/// Pre-resolved slider style with an appearance for each status variant.
-#[derive(Debug, Clone)]
+/// Pre-resolved slider style with a native `iced_widget` style for each status variant.
+#[derive(Debug, Clone, Copy)]
 pub struct SliderStyle {
-    active:  SliderAppearance,
-    hovered: SliderAppearance,
-    dragged: SliderAppearance,
+    active:  slider::Style,
+    hovered: slider::Style,
+    dragged: slider::Style,
 }
 
 impl SliderStyle {
-    pub fn active(&self) -> &SliderAppearance {
-        &self.active
+    /// Returns a closure suitable for passing to `.style()` on a slider widget.
+    pub fn style_fn(&self) -> impl Fn(&Theme, slider::Status) -> slider::Style + Copy {
+        let s = *self;
+        move |_theme, status| match status {
+            slider::Status::Active  => s.active,
+            slider::Status::Hovered => s.hovered,
+            slider::Status::Dragged => s.dragged,
+        }
     }
-
-    pub fn hovered(&self) -> &SliderAppearance {
-        &self.hovered
-    }
-
-    pub fn dragged(&self) -> &SliderAppearance {
-        &self.dragged
-    }
-}
-
-/// Handle shape enumeration, mirroring `iced_widget::slider::HandleShape`.
-#[derive(Debug, Clone, Copy)]
-pub enum HandleShapeKind {
-    Circle { radius: f32 },
-    Rectangle { width: u16, border_radius: Radius },
-}
-
-/// Visual properties for a slider. Fields mirror `iced_widget::slider::Style`.
-#[derive(Debug, Clone, Copy)]
-pub struct SliderAppearance {
-    pub rail_color_1: Color,
-    pub rail_color_2: Color,
-    pub rail_width: f32,
-    pub rail_border_radius: Radius,
-    pub handle_shape: HandleShapeKind,
-    pub handle_background: Background,
-    pub handle_border: Border,
 }

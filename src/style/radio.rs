@@ -1,4 +1,5 @@
-use iced_core::Color;
+use iced_core::{Background, Color, Theme};
+use iced_widget::radio;
 use serde::Deserialize;
 
 use crate::color::HexColor;
@@ -36,12 +37,13 @@ pub(crate) struct RadioSection {
 
 // -- Layer 2: Resolution --
 
+/// Cascade: base -> state -> status -> combined
 fn cascade(
     base: RadioFieldsRaw,
     state: Option<&RadioFieldsRaw>,
     status: Option<&RadioFieldsRaw>,
     combined: Option<&RadioFieldsRaw>,
-) -> RadioAppearance {
+) -> radio::Style {
     let mut resolved = base;
     if let Some(s) = state {
         resolved = resolved.merge(s);
@@ -52,32 +54,28 @@ fn cascade(
     if let Some(c) = combined {
         resolved = resolved.merge(c);
     }
-    into_appearance(resolved)
+    into_native(resolved)
 }
 
 impl RadioSection {
     pub fn resolve(self) -> RadioStyle {
-        let active_unselected = into_appearance(self.base);
+        let active_unselected = into_native(self.base);
         let active_selected = cascade(self.base, self.selected.as_ref(), None, None);
         let hovered_unselected = cascade(self.base, None, self.hovered.as_ref(), None);
         let hovered_selected = cascade(self.base, self.selected.as_ref(), self.hovered.as_ref(), self.hovered_selected.as_ref());
-        let disabled_unselected = cascade(self.base, None, self.disabled.as_ref(), None);
-        let disabled_selected = cascade(self.base, self.selected.as_ref(), self.disabled.as_ref(), self.disabled_selected.as_ref());
 
         RadioStyle {
             active_unselected,
             active_selected,
             hovered_unselected,
             hovered_selected,
-            disabled_unselected,
-            disabled_selected,
         }
     }
 }
 
-fn into_appearance(f: RadioFieldsRaw) -> RadioAppearance {
-    RadioAppearance {
-        background: f.background.map(|c| c.0).unwrap_or(Color::TRANSPARENT),
+fn into_native(f: RadioFieldsRaw) -> radio::Style {
+    radio::Style {
+        background: Background::Color(f.background.map(|c| c.0).unwrap_or(Color::TRANSPARENT)),
         dot_color: f.dot_color.map(|c| c.0).unwrap_or(Color::BLACK),
         border_width: f.border_width.unwrap_or(1.0),
         border_color: f.border_color.map(|c| c.0).unwrap_or(Color::BLACK),
@@ -87,37 +85,30 @@ fn into_appearance(f: RadioFieldsRaw) -> RadioAppearance {
 
 // -- Layer 3: Public types --
 
-/// Pre-resolved radio style with 6 variants (3 statuses × 2 states).
-#[derive(Debug, Clone)]
+/// Pre-resolved radio style with 4 variants (2 statuses x 2 states).
+///
+/// iced 0.14's `radio::Status` only has `Active` and `Hovered` — no `Disabled`.
+/// The TOML `[radio.disabled]` and `[radio.disabled-selected]` sections are still
+/// parsed but the resolved styles are not stored since iced cannot use them.
+#[derive(Debug, Clone, Copy)]
 pub struct RadioStyle {
-    active_unselected:   RadioAppearance,
-    active_selected:     RadioAppearance,
-    hovered_unselected:  RadioAppearance,
-    hovered_selected:    RadioAppearance,
-    disabled_unselected: RadioAppearance,
-    disabled_selected:   RadioAppearance,
+    active_unselected:  radio::Style,
+    active_selected:    radio::Style,
+    hovered_unselected: radio::Style,
+    hovered_selected:   radio::Style,
 }
 
 impl RadioStyle {
-    pub fn active(&self, is_selected: bool) -> &RadioAppearance {
-        if is_selected { &self.active_selected } else { &self.active_unselected }
+    /// Returns a closure suitable for passing to `.style()` on a radio widget.
+    pub fn style_fn(&self) -> impl Fn(&Theme, radio::Status) -> radio::Style + Copy {
+        let s = *self;
+        move |_theme, status| match status {
+            radio::Status::Active { is_selected } => {
+                if is_selected { s.active_selected } else { s.active_unselected }
+            }
+            radio::Status::Hovered { is_selected } => {
+                if is_selected { s.hovered_selected } else { s.hovered_unselected }
+            }
+        }
     }
-
-    pub fn hovered(&self, is_selected: bool) -> &RadioAppearance {
-        if is_selected { &self.hovered_selected } else { &self.hovered_unselected }
-    }
-
-    pub fn disabled(&self, is_selected: bool) -> &RadioAppearance {
-        if is_selected { &self.disabled_selected } else { &self.disabled_unselected }
-    }
-}
-
-/// Visual properties for a radio button. Fields mirror `iced_widget::radio::Style`.
-#[derive(Debug, Clone, Copy)]
-pub struct RadioAppearance {
-    pub background: Color,
-    pub dot_color: Color,
-    pub border_width: f32,
-    pub border_color: Color,
-    pub text_color: Option<Color>,
 }

@@ -1,4 +1,5 @@
-use iced_core::Color;
+use iced_core::{Background, Color, Theme};
+use iced_widget::toggler;
 use serde::Deserialize;
 
 use crate::color::HexColor;
@@ -40,12 +41,13 @@ pub(crate) struct TogglerSection {
 
 // -- Layer 2: Resolution --
 
+/// Cascade: base -> state -> status -> combined
 fn cascade(
     base: TogglerFieldsRaw,
     state: Option<&TogglerFieldsRaw>,
     status: Option<&TogglerFieldsRaw>,
     combined: Option<&TogglerFieldsRaw>,
-) -> TogglerAppearance {
+) -> toggler::Style {
     let mut resolved = base;
     if let Some(s) = state {
         resolved = resolved.merge(s);
@@ -56,12 +58,12 @@ fn cascade(
     if let Some(c) = combined {
         resolved = resolved.merge(c);
     }
-    into_appearance(resolved)
+    into_native(resolved)
 }
 
 impl TogglerSection {
     pub fn resolve(self) -> TogglerStyle {
-        let active_untoggled = into_appearance(self.base);
+        let active_untoggled = into_native(self.base);
         let active_toggled = cascade(self.base, self.toggled.as_ref(), None, None);
         let hovered_untoggled = cascade(self.base, None, self.hovered.as_ref(), None);
         let hovered_toggled = cascade(self.base, self.toggled.as_ref(), self.hovered.as_ref(), self.hovered_toggled.as_ref());
@@ -79,56 +81,47 @@ impl TogglerSection {
     }
 }
 
-fn into_appearance(f: TogglerFieldsRaw) -> TogglerAppearance {
-    TogglerAppearance {
-        background: f.background.map(|c| c.0).unwrap_or(Color::TRANSPARENT),
-        foreground: f.foreground.map(|c| c.0).unwrap_or(Color::BLACK),
+fn into_native(f: TogglerFieldsRaw) -> toggler::Style {
+    toggler::Style {
+        background: Background::Color(f.background.map(|c| c.0).unwrap_or(Color::TRANSPARENT)),
+        foreground: Background::Color(f.foreground.map(|c| c.0).unwrap_or(Color::BLACK)),
         background_border_width: f.background_border_width.unwrap_or(0.0),
         background_border_color: f.background_border_color.map(|c| c.0).unwrap_or(Color::TRANSPARENT),
         foreground_border_width: f.foreground_border_width.unwrap_or(0.0),
         foreground_border_color: f.foreground_border_color.map(|c| c.0).unwrap_or(Color::TRANSPARENT),
-        border_radius: f.border_radius,
+        border_radius: f.border_radius.map(|r| r.into()),
         text_color: f.text_color.map(|c| c.0),
+        padding_ratio: 0.36,
     }
 }
 
 // -- Layer 3: Public types --
 
-/// Pre-resolved toggler style with 6 variants (3 statuses × 2 states).
-#[derive(Debug, Clone)]
+/// Pre-resolved toggler style with 6 variants (3 statuses x 2 states).
+#[derive(Debug, Clone, Copy)]
 pub struct TogglerStyle {
-    active_untoggled:   TogglerAppearance,
-    active_toggled:     TogglerAppearance,
-    hovered_untoggled:  TogglerAppearance,
-    hovered_toggled:    TogglerAppearance,
-    disabled_untoggled: TogglerAppearance,
-    disabled_toggled:   TogglerAppearance,
+    active_untoggled:   toggler::Style,
+    active_toggled:     toggler::Style,
+    hovered_untoggled:  toggler::Style,
+    hovered_toggled:    toggler::Style,
+    disabled_untoggled: toggler::Style,
+    disabled_toggled:   toggler::Style,
 }
 
 impl TogglerStyle {
-    pub fn active(&self, is_toggled: bool) -> &TogglerAppearance {
-        if is_toggled { &self.active_toggled } else { &self.active_untoggled }
+    /// Returns a closure suitable for passing to `.style()` on a toggler widget.
+    pub fn style_fn(&self) -> impl Fn(&Theme, toggler::Status) -> toggler::Style + Copy {
+        let s = *self;
+        move |_theme, status| match status {
+            toggler::Status::Active { is_toggled } => {
+                if is_toggled { s.active_toggled } else { s.active_untoggled }
+            }
+            toggler::Status::Hovered { is_toggled } => {
+                if is_toggled { s.hovered_toggled } else { s.hovered_untoggled }
+            }
+            toggler::Status::Disabled { is_toggled } => {
+                if is_toggled { s.disabled_toggled } else { s.disabled_untoggled }
+            }
+        }
     }
-
-    pub fn hovered(&self, is_toggled: bool) -> &TogglerAppearance {
-        if is_toggled { &self.hovered_toggled } else { &self.hovered_untoggled }
-    }
-
-    pub fn disabled(&self, is_toggled: bool) -> &TogglerAppearance {
-        if is_toggled { &self.disabled_toggled } else { &self.disabled_untoggled }
-    }
-}
-
-/// Visual properties for a toggler. Fields mirror `iced_widget::toggler::Style`.
-#[derive(Debug, Clone, Copy)]
-pub struct TogglerAppearance {
-    pub background: Color,
-    pub foreground: Color,
-    pub background_border_width: f32,
-    pub background_border_color: Color,
-    pub foreground_border_width: f32,
-    pub foreground_border_color: Color,
-    /// If `None`, inherits iced's default.
-    pub border_radius: Option<f32>,
-    pub text_color: Option<Color>,
 }

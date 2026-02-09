@@ -1,17 +1,116 @@
-//! Parse TOML theme files into iced's native [`Theme`] type.
+//! Parse TOML theme files into iced's native [`Theme`] type at runtime.
 //!
-//! `iced-themer` lets users define themes declaratively in TOML and load them
-//! at runtime, avoiding recompilation when colors or fonts change.
+//! `iced-themer` reads a `.toml` file and turns it into types that iced
+//! understands, so you can change colors, fonts, and widget styles without
+//! recompiling your program.
 //!
-//! # Quick start
+//! # Two levels of theming
+//!
+//! A theme file has two kinds of sections, and they work differently:
+//!
+//! ## 1. Palette and font — automatic, app-wide
+//!
+//! The `[palette]` and `[font]` sections set the overall look of your app.
+//! You apply them once when creating the application and every widget picks
+//! them up automatically — no per-widget code needed.
+//!
+//! ```toml
+//! name = "Ocean Breeze"
+//!
+//! [palette]
+//! background = "#1B2838"
+//! text       = "#C7D5E0"
+//! primary    = "#66C0F4"
+//! success    = "#4CAF50"
+//! warning    = "#FFC107"
+//! danger     = "#F44336"
+//!
+//! [font]
+//! family = "Arial"
+//! weight = "normal"
+//! ```
 //!
 //! ```no_run
+//! use iced::Theme;
 //! use iced_themer::ThemeConfig;
 //!
 //! let config = ThemeConfig::from_file("theme.toml").unwrap();
-//! let theme = config.theme();   // cheap Arc clone
-//! let font = config.font();     // Option<Font>
+//! let theme = config.theme();
+//! let font  = config.font();
+//!
+//! let app = iced::application(|| MyApp, MyApp::update, MyApp::view)
+//!     .theme(move |_: &MyApp| -> Theme { theme.clone() });
+//!
+//! // If a font was specified, set it as the default:
+//! # struct MyApp; impl MyApp { fn update(&mut self, _: ()) {} fn view(&self) -> iced::Element<'_, ()> { todo!() } }
+//! match font {
+//!     Some(f) => app.default_font(f).run(),
+//!     None    => app.run(),
+//! }
+//! # ;
 //! ```
+//!
+//! With just a `[palette]`, buttons will use the primary color, text will use
+//! the text color, backgrounds will use the background color, and so on. This
+//! is iced's built-in theming at work — the palette flows through every widget
+//! without you having to touch each one.
+//!
+//! ## 2. Widget styles — opt-in, per-widget
+//!
+//! Sometimes the palette isn't enough. Maybe you want a button with a specific
+//! hex background that doesn't match any palette slot, or you want the border
+//! to change color when hovered. That's what the widget sections are for:
+//!
+//! ```toml
+//! [button]
+//! background   = "#66C0F4"
+//! text-color   = "#FFFFFF"
+//! border-radius = 4.0
+//!
+//! [button.hovered]
+//! background = "#77D0FF"
+//!
+//! [button.pressed]
+//! background = "#5590C0"
+//! ```
+//!
+//! These sections are **optional** — if you leave them out, the widget just
+//! uses whatever the palette gives it. Status sub-tables (`hovered`, `pressed`,
+//! `disabled`, etc.) inherit every field from the base and only override what
+//! they specify.
+//!
+//! Unlike the palette, widget styles must be applied to each widget explicitly.
+//! Every style type has a [`style_fn()`] method that returns a closure you can
+//! pass straight to the widget's `.style()` builder:
+//!
+//! ```no_run
+//! # use iced::widget::button;
+//! # use iced_themer::ThemeConfig;
+//! # let config = ThemeConfig::from_file("theme.toml").unwrap();
+//! let mut btn = button("Click me").on_press(());
+//!
+//! if let Some(s) = config.button() {
+//!     btn = btn.style(s.style_fn());
+//! }
+//! ```
+//!
+//! The `if let Some` handles the case where the TOML file doesn't include a
+//! `[button]` section — the widget will just use the palette defaults.
+//!
+//! [`style_fn()`]: style::ButtonStyle::style_fn
+//!
+//! # Supported widget sections
+//!
+//! | TOML section      | Style type                          |
+//! |-------------------|-------------------------------------|
+//! | `[button]`        | [`ButtonStyle`](style::ButtonStyle) |
+//! | `[checkbox]`      | [`CheckboxStyle`](style::CheckboxStyle) |
+//! | `[container]`     | [`ContainerStyle`](style::ContainerStyle) |
+//! | `[progress-bar]`  | [`ProgressBarStyle`](style::ProgressBarStyle) |
+//! | `[radio]`         | [`RadioStyle`](style::RadioStyle) |
+//! | `[slider]`        | [`SliderStyle`](style::SliderStyle) |
+//! | `[text-input]`    | [`TextInputStyle`](style::TextInputStyle) |
+//! | `[toggler]`       | [`TogglerStyle`](style::TogglerStyle) |
 
 mod color;
 mod config;

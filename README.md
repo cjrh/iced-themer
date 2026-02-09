@@ -84,29 +84,14 @@ impl App {
     fn view(&self) -> Element<'_, ()> {
         let mut b = button("Click me").on_press(());
         if let Some(s) = &self.btn {
-            let s = s.clone();
-            b = b.style(move |_theme, status| {
-                let a = match status {
-                    button::Status::Active  => s.active(),
-                    button::Status::Hovered => s.hovered(),
-                    button::Status::Pressed => s.pressed(),
-                    button::Status::Disabled => s.disabled(),
-                };
-                button::Style {
-                    background: a.background,
-                    text_color: a.text_color,
-                    border: a.border,
-                    shadow: a.shadow,
-                    snap: false,
-                }
-            });
+            b = b.style(s.style_fn());
         }
         b.into()
     }
 }
 ```
 
-The pattern is the same for every widget: clone the style into the `.style()` closure, match on the iced status enum, and map the fields.
+Each widget style type provides a `style_fn()` method that returns a closure ready for `.style()`. No manual status matching needed.
 
 ## Supported widgets
 

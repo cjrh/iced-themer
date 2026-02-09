@@ -1,4 +1,5 @@
-use iced_core::{Background, Border, Color};
+use iced_core::{Background, Color, Theme};
+use iced_widget::progress_bar;
 use serde::Deserialize;
 
 use crate::color::HexColor;
@@ -32,15 +33,15 @@ pub(crate) struct ProgressBarSection {
 
 impl ProgressBarSection {
     pub fn resolve(self) -> ProgressBarStyle {
-        ProgressBarStyle(into_appearance(self.base))
+        ProgressBarStyle(into_native(self.base))
     }
 }
 
-fn into_appearance(f: ProgressBarFieldsRaw) -> ProgressBarAppearance {
+fn into_native(f: ProgressBarFieldsRaw) -> progress_bar::Style {
     let bg_color = f.background.map(|c| c.0).unwrap_or(Color::TRANSPARENT);
     let bar_color = f.bar.map(|c| c.0).unwrap_or(Color::BLACK);
 
-    ProgressBarAppearance {
+    progress_bar::Style {
         background: Background::Color(bg_color),
         bar: Background::Color(bar_color),
         border: resolve_border(f.border_width, f.border_color, f.border_radius),
@@ -49,20 +50,14 @@ fn into_appearance(f: ProgressBarFieldsRaw) -> ProgressBarAppearance {
 
 // -- Layer 3: Public types --
 
-/// Pre-resolved progress bar style. Mirrors `iced_widget::progress_bar::Style`.
-#[derive(Debug, Clone)]
-pub struct ProgressBarStyle(ProgressBarAppearance);
+/// Pre-resolved progress bar style.
+#[derive(Debug, Clone, Copy)]
+pub struct ProgressBarStyle(progress_bar::Style);
 
 impl ProgressBarStyle {
-    pub fn appearance(&self) -> &ProgressBarAppearance {
-        &self.0
+    /// Returns a closure suitable for passing to `.style()` on a progress bar widget.
+    pub fn style_fn(&self) -> impl Fn(&Theme) -> progress_bar::Style + Copy {
+        let s = self.0;
+        move |_theme| s
     }
-}
-
-/// Visual properties for a progress bar.
-#[derive(Debug, Clone, Copy)]
-pub struct ProgressBarAppearance {
-    pub background: Background,
-    pub bar: Background,
-    pub border: Border,
 }
