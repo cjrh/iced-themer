@@ -1,0 +1,99 @@
+name = "Ocean Breeze"
+
+[palette]
+background = "#1B2838"
+text = "#C7D5E0"
+primary = "#66C0F4"
+success = "#4CAF50"
+warning = "#FFC107"
+danger = "#F44336"
+
+[font]
+# family = "sans-serif"
+family = "Arial"
+weight = "normal"
+
+[button]
+background = "#66C0F4"
+text-color = "#FFFFFF"
+border-radius = 4.0
+border-width = 0.0
+border-color = "transparent"
+shadow-color = "transparent"
+
+[button.hovered]
+background = "#77D0FF"
+
+[button.pressed]
+background = "#5590C0"
+
+[button.disabled]
+background = "#445566"
+text-color = "#888888"
+
+[container]
+background = "#1B2838"
+border-radius = 8.0
+
+[text-input]
+background = "#2A3F5F"
+border-width = 1.0
+border-color = "#66C0F4"
+border-radius = 4.0
+placeholder-color = "#667788"
+value-color = "#C7D5E0"
+selection-color = "#66C0F440"
+icon-color = "#C7D5E0"
+
+[text-input.focused]
+border-color = "#77D0FF"
+border-width = 2.0
+
+[checkbox]
+background = "#2A3F5F"
+icon-color = "#FFFFFF"
+border-width = 1.0
+border-color = "#66C0F4"
+border-radius = 3.0
+
+[checkbox.checked]
+background = "#66C0F4"
+
+[checkbox.hovered]
+border-color = "#77D0FF"
+
+[progress-bar]
+background = "#2A3F5F"
+bar = "#66C0F4"
+border-radius = 4.0
+
+[toggler]
+background = "#445566"
+foreground = "#C7D5E0"
+background-border-width = 0.0
+background-border-color = "transparent"
+foreground-border-width = 0.0
+foreground-border-color = "transparent"
+
+[toggler.toggled]
+background = "#66C0F4"
+
+[slider]
+rail-color-1 = "#66C0F4"
+rail-color-2 = "#445566"
+rail-width = 4.0
+rail-border-radius = 2.0
+handle-shape = "circle"
+handle-radius = 8.0
+handle-background = "#C7D5E0"
+handle-border-width = 2.0
+handle-border-color = "#66C0F4"
+
+[radio]
+background = "#2A3F5F"
+dot-color = "#66C0F4"
+border-width = 1.0
+border-color = "#66C0F4"
+
+[radio.selected]
+background = "#3A5070"

@@ -1,0 +1,15 @@
+[package]
+name = "iced-themer"
+version = "0.1.0"
+edition = "2024"
+description = "Parse TOML theme files into iced's native Theme type"
+license = "MIT"
+
+[workspace]
+members = ["example"]
+
+[dependencies]
+iced_core = "0.14"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+thiserror = "2"
