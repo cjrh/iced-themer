@@ -12,5 +12,5 @@ members = ["example"]
 iced_core = "0.14"
 iced_widget = "0.14"
 serde = { version = "1", features = ["derive"] }
-toml = "0.8"
+toml = "0.9"
 thiserror = "2"

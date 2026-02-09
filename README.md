@@ -107,3 +107,7 @@ Each widget style type provides a `style_fn()` method that returns a closure rea
 ## License
 
 MIT
+
+## See Also
+
+- [marcel](https://github.com/micro-rust/marcel)
