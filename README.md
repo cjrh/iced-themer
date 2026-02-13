@@ -44,6 +44,17 @@ background = "#5590C0"
 background = "#445566"
 text-color = "#888888"
 
+# Backgrounds can also be linear gradients (up to 8 color stops):
+[progress-bar]
+border-radius = 4.0
+
+[progress-bar.bar]
+angle = 90
+stops = [
+  { offset = 0.0, color = "#66C0F4" },
+  { offset = 1.0, color = "#4CAF50" },
+]
+
 # For more see the `theme.toml` in the example/ directory.
 ```
 
