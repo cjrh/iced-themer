@@ -63,9 +63,21 @@ background = "#66C0F4"
 border-color = "#77D0FF"
 
 [progress-bar]
-background = "#2A3F5F"
-bar = "#66C0F4"
 border-radius = 4.0
+
+[progress-bar.background]
+angle = 0
+stops = [
+  { offset = 0.0, color = "#1B2838" },
+  { offset = 1.0, color = "#2A3F5F" },
+]
+
+[progress-bar.bar]
+angle = 90
+stops = [
+  { offset = 0.0, color = "#66C0F4" },
+  { offset = 1.0, color = "#4CAF50" },
+]
 
 [toggler]
 background = "#445566"

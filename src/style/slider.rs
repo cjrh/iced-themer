@@ -3,7 +3,7 @@ use iced_widget::slider;
 use serde::Deserialize;
 
 use crate::color::HexColor;
-use super::{RadiusRaw, impl_merge};
+use super::{BackgroundRaw, RadiusRaw, impl_merge};
 
 // -- Layer 1: Serde raw types --
 
@@ -18,7 +18,7 @@ pub(crate) struct SliderFieldsRaw {
     handle_radius:        Option<f32>,
     handle_width:         Option<f32>,
     handle_border_radius: Option<RadiusRaw>,
-    handle_background:    Option<HexColor>,
+    handle_background:    Option<BackgroundRaw>,
     handle_border_width:  Option<f32>,
     handle_border_color:  Option<HexColor>,
 }
@@ -92,9 +92,7 @@ fn into_native(f: SliderFieldsRaw) -> slider::Style {
         },
         handle: slider::Handle {
             shape: handle_shape,
-            background: Background::Color(
-                f.handle_background.map(|c| c.0).unwrap_or(Color::BLACK),
-            ),
+            background: f.handle_background.map(BackgroundRaw::into_background).unwrap_or(Background::Color(Color::BLACK)),
             border_width: f.handle_border_width.unwrap_or(0.0),
             border_color: f.handle_border_color.map(|c| c.0).unwrap_or(Color::TRANSPARENT),
         },

@@ -1,16 +1,16 @@
-use iced_core::{Background, Color, Theme};
+use iced_core::{Color, Theme};
 use iced_widget::button;
 use serde::Deserialize;
 
 use crate::color::HexColor;
-use super::{RadiusRaw, impl_merge, resolve_border, resolve_shadow};
+use super::{BackgroundRaw, RadiusRaw, impl_merge, resolve_border, resolve_shadow};
 
 // -- Layer 1: Serde raw types --
 
 #[derive(Deserialize, Default, Clone, Copy)]
 #[serde(default, rename_all = "kebab-case")]
 pub(crate) struct ButtonFieldsRaw {
-    background:         Option<HexColor>,
+    background:         Option<BackgroundRaw>,
     text_color:         Option<HexColor>,
     border_width:       Option<f32>,
     border_color:       Option<HexColor>,
@@ -59,7 +59,7 @@ fn resolve_status(base: ButtonFieldsRaw, status: Option<&ButtonFieldsRaw>) -> bu
 
 fn into_native(f: ButtonFieldsRaw) -> button::Style {
     button::Style {
-        background: f.background.map(|c| Background::Color(c.0)),
+        background: f.background.map(BackgroundRaw::into_background),
         text_color: f.text_color.map(|c| c.0).unwrap_or(Color::BLACK),
         border: resolve_border(f.border_width, f.border_color, f.border_radius),
         shadow: resolve_shadow(f.shadow_color, f.shadow_offset_x, f.shadow_offset_y, f.shadow_blur_radius),

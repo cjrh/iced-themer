@@ -3,14 +3,14 @@ use iced_widget::text_input;
 use serde::Deserialize;
 
 use crate::color::HexColor;
-use super::{RadiusRaw, impl_merge, resolve_border};
+use super::{BackgroundRaw, RadiusRaw, impl_merge, resolve_border};
 
 // -- Layer 1: Serde raw types --
 
 #[derive(Deserialize, Default, Clone, Copy)]
 #[serde(default, rename_all = "kebab-case")]
 pub(crate) struct TextInputFieldsRaw {
-    background:        Option<HexColor>,
+    background:        Option<BackgroundRaw>,
     border_width:      Option<f32>,
     border_color:      Option<HexColor>,
     border_radius:     Option<RadiusRaw>,
@@ -55,7 +55,7 @@ fn resolve_status(base: TextInputFieldsRaw, status: Option<&TextInputFieldsRaw>)
 
 fn into_native(f: TextInputFieldsRaw) -> text_input::Style {
     text_input::Style {
-        background: Background::Color(f.background.map(|c| c.0).unwrap_or(Color::TRANSPARENT)),
+        background: f.background.map(BackgroundRaw::into_background).unwrap_or(Background::Color(Color::TRANSPARENT)),
         border: resolve_border(f.border_width, f.border_color, f.border_radius),
         icon: f.icon_color.map(|c| c.0).unwrap_or(Color::BLACK),
         placeholder: f.placeholder_color.map(|c| c.0).unwrap_or(Color::from_rgba8(0x80, 0x80, 0x80, 1.0)),

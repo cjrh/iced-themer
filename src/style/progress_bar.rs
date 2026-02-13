@@ -3,15 +3,15 @@ use iced_widget::progress_bar;
 use serde::Deserialize;
 
 use crate::color::HexColor;
-use super::{RadiusRaw, impl_merge, resolve_border};
+use super::{BackgroundRaw, RadiusRaw, impl_merge, resolve_border};
 
 // -- Layer 1: Serde raw types --
 
 #[derive(Deserialize, Default, Clone, Copy)]
 #[serde(default, rename_all = "kebab-case")]
 pub(crate) struct ProgressBarFieldsRaw {
-    background:    Option<HexColor>,
-    bar:           Option<HexColor>,
+    background:    Option<BackgroundRaw>,
+    bar:           Option<BackgroundRaw>,
     border_width:  Option<f32>,
     border_color:  Option<HexColor>,
     border_radius: Option<RadiusRaw>,
@@ -38,12 +38,9 @@ impl ProgressBarSection {
 }
 
 fn into_native(f: ProgressBarFieldsRaw) -> progress_bar::Style {
-    let bg_color = f.background.map(|c| c.0).unwrap_or(Color::TRANSPARENT);
-    let bar_color = f.bar.map(|c| c.0).unwrap_or(Color::BLACK);
-
     progress_bar::Style {
-        background: Background::Color(bg_color),
-        bar: Background::Color(bar_color),
+        background: f.background.map(BackgroundRaw::into_background).unwrap_or(Background::Color(Color::TRANSPARENT)),
+        bar: f.bar.map(BackgroundRaw::into_background).unwrap_or(Background::Color(Color::BLACK)),
         border: resolve_border(f.border_width, f.border_color, f.border_radius),
     }
 }

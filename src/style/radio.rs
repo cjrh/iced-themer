@@ -3,14 +3,14 @@ use iced_widget::radio;
 use serde::Deserialize;
 
 use crate::color::HexColor;
-use super::impl_merge;
+use super::{BackgroundRaw, impl_merge};
 
 // -- Layer 1: Serde raw types --
 
 #[derive(Deserialize, Default, Clone, Copy)]
 #[serde(default, rename_all = "kebab-case")]
 pub(crate) struct RadioFieldsRaw {
-    background:   Option<HexColor>,
+    background:   Option<BackgroundRaw>,
     dot_color:    Option<HexColor>,
     border_width: Option<f32>,
     border_color: Option<HexColor>,
@@ -75,7 +75,7 @@ impl RadioSection {
 
 fn into_native(f: RadioFieldsRaw) -> radio::Style {
     radio::Style {
-        background: Background::Color(f.background.map(|c| c.0).unwrap_or(Color::TRANSPARENT)),
+        background: f.background.map(BackgroundRaw::into_background).unwrap_or(Background::Color(Color::TRANSPARENT)),
         dot_color: f.dot_color.map(|c| c.0).unwrap_or(Color::BLACK),
         border_width: f.border_width.unwrap_or(1.0),
         border_color: f.border_color.map(|c| c.0).unwrap_or(Color::BLACK),

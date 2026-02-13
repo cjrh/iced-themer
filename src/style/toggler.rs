@@ -3,15 +3,15 @@ use iced_widget::toggler;
 use serde::Deserialize;
 
 use crate::color::HexColor;
-use super::impl_merge;
+use super::{BackgroundRaw, impl_merge};
 
 // -- Layer 1: Serde raw types --
 
 #[derive(Deserialize, Default, Clone, Copy)]
 #[serde(default, rename_all = "kebab-case")]
 pub(crate) struct TogglerFieldsRaw {
-    background:              Option<HexColor>,
-    foreground:              Option<HexColor>,
+    background:              Option<BackgroundRaw>,
+    foreground:              Option<BackgroundRaw>,
     background_border_width: Option<f32>,
     background_border_color: Option<HexColor>,
     foreground_border_width: Option<f32>,
@@ -83,8 +83,8 @@ impl TogglerSection {
 
 fn into_native(f: TogglerFieldsRaw) -> toggler::Style {
     toggler::Style {
-        background: Background::Color(f.background.map(|c| c.0).unwrap_or(Color::TRANSPARENT)),
-        foreground: Background::Color(f.foreground.map(|c| c.0).unwrap_or(Color::BLACK)),
+        background: f.background.map(BackgroundRaw::into_background).unwrap_or(Background::Color(Color::TRANSPARENT)),
+        foreground: f.foreground.map(BackgroundRaw::into_background).unwrap_or(Background::Color(Color::BLACK)),
         background_border_width: f.background_border_width.unwrap_or(0.0),
         background_border_color: f.background_border_color.map(|c| c.0).unwrap_or(Color::TRANSPARENT),
         foreground_border_width: f.foreground_border_width.unwrap_or(0.0),

@@ -3,14 +3,14 @@ use iced_widget::checkbox;
 use serde::Deserialize;
 
 use crate::color::HexColor;
-use super::{RadiusRaw, impl_merge, resolve_border};
+use super::{BackgroundRaw, RadiusRaw, impl_merge, resolve_border};
 
 // -- Layer 1: Serde raw types --
 
 #[derive(Deserialize, Default, Clone, Copy)]
 #[serde(default, rename_all = "kebab-case")]
 pub(crate) struct CheckboxFieldsRaw {
-    background:    Option<HexColor>,
+    background:    Option<BackgroundRaw>,
     icon_color:    Option<HexColor>,
     border_width:  Option<f32>,
     border_color:  Option<HexColor>,
@@ -80,7 +80,7 @@ impl CheckboxSection {
 
 fn into_native(f: CheckboxFieldsRaw) -> checkbox::Style {
     checkbox::Style {
-        background: Background::Color(f.background.map(|c| c.0).unwrap_or(Color::TRANSPARENT)),
+        background: f.background.map(BackgroundRaw::into_background).unwrap_or(Background::Color(Color::TRANSPARENT)),
         icon_color: f.icon_color.map(|c| c.0).unwrap_or(Color::BLACK),
         border: resolve_border(f.border_width, f.border_color, f.border_radius),
         text_color: f.text_color.map(|c| c.0),
