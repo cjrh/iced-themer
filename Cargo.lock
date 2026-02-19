@@ -1158,7 +1158,7 @@ dependencies = [
 
 [[package]]
 name = "iced-themer"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "farver",
  "iced_core",
