@@ -115,6 +115,7 @@
 mod color;
 mod config;
 mod error;
+mod expr;
 pub mod style;
 mod variables;
 

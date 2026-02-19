@@ -47,9 +47,11 @@ fn extract(root: &mut Value) -> Result<HashMap<String, String>, String> {
     Ok(vars)
 }
 
-/// Resolves variable-to-variable references iteratively. Detects cycles and
-/// undefined references, returning a descriptive error for each.
+/// Resolves variable-to-variable references iteratively, then evaluates any
+/// color transformation expressions (e.g. `"darken($primary, 20%)"`).
+/// Detects cycles and undefined references, returning a descriptive error.
 fn evaluate(mut vars: HashMap<String, String>) -> Result<HashMap<String, String>, String> {
+    // Phase 1: resolve plain `$name` references iteratively.
     // One pass per variable is sufficient for any non-cyclic chain.
     for _ in 0..=vars.len() {
         let snapshot = vars.clone();
@@ -91,11 +93,29 @@ fn evaluate(mut vars: HashMap<String, String>) -> Result<HashMap<String, String>
         ));
     }
 
+    // Phase 2: evaluate any color expression values (e.g. `"darken($primary, 20%)"`).
+    // The snapshot here has all $refs resolved, so expression args can be looked up.
+    let snapshot = vars.clone();
+    for (key, val) in vars.iter_mut() {
+        if is_expr(val) {
+            *val = crate::expr::evaluate(val, &snapshot)
+                .map_err(|e| format!("variable `{key}`: {e}"))?;
+        }
+    }
+
     Ok(vars)
 }
 
-/// Walks `value` recursively, replacing whole-string `"$name"` values with the
-/// resolved color from `vars`. Returns an error for any unresolved `$` reference.
+/// Returns true if `s` looks like a color expression function call.
+fn is_expr(s: &str) -> bool {
+    s.contains('(') && s.chars().next().is_some_and(|c| c.is_ascii_alphabetic())
+}
+
+/// Walks `value` recursively, replacing:
+/// - `"$name"` strings with the resolved color from `vars`
+/// - `"fn(...)"` strings with the result of evaluating the expression
+///
+/// Returns an error for undefined variables or invalid expressions.
 fn substitute(value: &mut Value, vars: &HashMap<String, String>) -> Result<(), String> {
     match value {
         Value::String(s) => {
@@ -104,6 +124,9 @@ fn substitute(value: &mut Value, vars: &HashMap<String, String>) -> Result<(), S
                     Some(resolved) => *s = resolved.clone(),
                     None => return Err(format!("undefined variable `${name}`")),
                 }
+            } else if is_expr(s) {
+                *s = crate::expr::evaluate(s, vars)
+                    .map_err(|e| format!("in expression `{s}`: {e}"))?;
             }
         }
         Value::Array(arr) => {

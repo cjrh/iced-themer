@@ -1,18 +1,20 @@
 name = "Ocean Breeze"
 
 # Define palette colors once; reference them with $name throughout the file.
+# Derived colors can be computed with transformation functions:
+#   darken, lighten, saturate, desaturate, tint, shade, greyscale, spin, mix
 [variables]
 bg        = "#1B2838"
 bg-raised = "#2A3F5F"
 bg-muted  = "#445566"
 text      = "#C7D5E0"
 primary   = "#66C0F4"
-primary-h = "#77D0FF"   # hovered primary
-primary-d = "#5590C0"   # pressed/darker primary
+primary-h = "lighten($primary, 8%)"   # lighter for hover
+primary-d = "darken($primary, 15%)"   # darker for pressed
 success   = "#4CAF50"
 warning   = "#FFC107"
 danger    = "#F44336"
-muted     = "#888888"
+muted     = "desaturate($text, 60%)"  # muted text derived from $text
 
 [palette]
 background = "$bg"

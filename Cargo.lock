@@ -767,6 +767,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "farver"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "645f9b5d984ab12e636173350770aa8e5904fe574b0676a29001160038425fe9"
+
+[[package]]
 name = "fastrand"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1154,6 +1160,7 @@ dependencies = [
 name = "iced-themer"
 version = "0.2.1"
 dependencies = [
+ "farver",
  "iced_core",
  "iced_widget",
  "serde",
