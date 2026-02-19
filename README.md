@@ -154,7 +154,8 @@ Variables can themselves use color transformation expressions:
 
 ## Switching themes at runtime
 
-Store multiple `ThemeConfig`s in your app state and read the active one from the `.theme()` closure each frame. Because the closure runs on every render, the theme switches instantly.
+Store multiple `ThemeConfig`s in your app state and read the active one from the `.theme()` closure each frame. 
+Because the closure runs on every render, the theme switches instantly.
 
 ```rust
 struct App {
@@ -201,6 +202,7 @@ See `example/` for a complete demo with a toggler that switches between `light.t
 
 ## Embedding a theme in your binary
 
+You control how the theme TOML is loaded.
 To avoid shipping a separate `.toml` file alongside your binary, bake the theme in at compile time:
 
 ```rust
