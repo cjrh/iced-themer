@@ -10,8 +10,8 @@ use super::{BackgroundRaw, RadiusRaw, impl_merge};
 #[derive(Deserialize, Default, Clone, Copy)]
 #[serde(default, rename_all = "kebab-case")]
 pub(crate) struct SliderFieldsRaw {
-    rail_color_1:         Option<HexColor>,
-    rail_color_2:         Option<HexColor>,
+    rail_background_1:    Option<BackgroundRaw>,
+    rail_background_2:    Option<BackgroundRaw>,
     rail_width:           Option<f32>,
     rail_border_radius:   Option<RadiusRaw>,
     handle_shape:         Option<HandleShapeKindRaw>,
@@ -24,7 +24,7 @@ pub(crate) struct SliderFieldsRaw {
 }
 
 impl_merge!(SliderFieldsRaw {
-    rail_color_1, rail_color_2, rail_width, rail_border_radius,
+    rail_background_1, rail_background_2, rail_width, rail_border_radius,
     handle_shape, handle_radius, handle_width, handle_border_radius,
     handle_background, handle_border_width, handle_border_color,
 });
@@ -81,8 +81,12 @@ fn into_native(f: SliderFieldsRaw) -> slider::Style {
     slider::Style {
         rail: slider::Rail {
             backgrounds: (
-                Background::Color(f.rail_color_1.map(|c| c.0).unwrap_or(Color::BLACK)),
-                Background::Color(f.rail_color_2.map(|c| c.0).unwrap_or(Color::TRANSPARENT)),
+                f.rail_background_1
+                    .map(BackgroundRaw::into_background)
+                    .unwrap_or(Background::Color(Color::BLACK)),
+                f.rail_background_2
+                    .map(BackgroundRaw::into_background)
+                    .unwrap_or(Background::Color(Color::TRANSPARENT)),
             ),
             width: f.rail_width.unwrap_or(4.0),
             border: Border {

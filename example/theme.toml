@@ -107,15 +107,21 @@ foreground-border-color = "transparent"
 background = "$primary"
 
 [slider]
-rail-color-1       = "$primary"
-rail-color-2       = "$bg-muted"
-rail-width         = 4.0
-rail-border-radius = 2.0
-handle-shape       = "circle"
-handle-radius      = 8.0
-handle-background  = "$text"
+rail-width          = 4.0
+rail-border-radius  = 2.0
+rail-background-2   = "$bg-muted"
+handle-shape        = "circle"
+handle-radius       = 8.0
+handle-background   = "$text"
 handle-border-width = 2.0
 handle-border-color = "$primary"
+
+[slider.rail-background-1]
+angle = 90
+stops = [
+  { offset = 0.0, color = "$primary" },
+  { offset = 1.0, color = "$success" },
+]
 
 [radio]
 background   = "$bg-raised"
