@@ -116,6 +116,7 @@ mod color;
 mod config;
 mod error;
 pub mod style;
+mod variables;
 
 pub use error::Error;
 
@@ -205,7 +206,13 @@ impl FromStr for ThemeConfig {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let raw: config::ThemeRaw = toml::from_str(s)?;
+        let mut value: toml::Value = toml::from_str(s)?;
+        variables::resolve(&mut value).map_err(|reason| Error::InvalidColor {
+            field: "variables".to_string(),
+            value: String::new(),
+            reason,
+        })?;
+        let raw: config::ThemeRaw = serde::Deserialize::deserialize(value)?;
         raw.try_into()
     }
 }
