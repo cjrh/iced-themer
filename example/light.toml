@@ -1,0 +1,132 @@
+name = "Daylight"
+
+# Define palette colors once; reference them with $name throughout the file.
+# Derived colors can be computed with transformation functions:
+#   darken, lighten, saturate, desaturate, tint, shade, greyscale, spin, mix
+[variables]
+bg        = "#F5F5F5"
+bg-raised = "#FFFFFF"
+bg-muted  = "#E0E0E0"
+text      = "#1A1A2E"
+primary   = "#1565C0"
+primary-h = "lighten($primary, 8%)"   # lighter for hover
+primary-d = "darken($primary, 15%)"   # darker for pressed
+success   = "#2E7D32"
+warning   = "#E65100"
+danger    = "#C62828"
+muted     = "desaturate($text, 60%)"  # muted text derived from $text
+
+[palette]
+background = "$bg"
+text       = "$text"
+primary    = "$primary"
+success    = "$success"
+warning    = "$warning"
+danger     = "$danger"
+
+[font]
+family = "Arial"
+weight = "normal"
+
+[button]
+background    = "$primary"
+text-color    = "#FFFFFF"
+border-radius = 4.0
+border-width  = 0.0
+border-color  = "transparent"
+shadow-color  = "transparent"
+
+[button.hovered]
+background = "$primary-h"
+
+[button.pressed]
+background = "$primary-d"
+
+[button.disabled]
+background = "$bg-muted"
+text-color = "$muted"
+
+[container]
+background    = "$bg"
+border-radius = 8.0
+
+[text-input]
+background        = "$bg-raised"
+border-width      = 1.0
+border-color      = "$primary"
+border-radius     = 4.0
+placeholder-color = "#9999AA"
+value-color       = "$text"
+selection-color   = "#1565C040"
+icon-color        = "$text"
+
+[text-input.focused]
+border-color = "$primary-h"
+border-width = 2.0
+
+[checkbox]
+background    = "$bg-raised"
+icon-color    = "#FFFFFF"
+border-width  = 1.0
+border-color  = "$primary"
+border-radius = 3.0
+
+[checkbox.checked]
+background = "$primary"
+
+[checkbox.hovered]
+border-color = "$primary-h"
+
+[progress-bar]
+border-radius = 4.0
+
+[progress-bar.background]
+angle = 0
+stops = [
+  { offset = 0.0, color = "$bg"       },
+  { offset = 1.0, color = "$bg-muted" },
+]
+
+[progress-bar.bar]
+angle = 90
+stops = [
+  { offset = 0.0, color = "$primary" },
+  { offset = 1.0, color = "$success" },
+]
+
+[toggler]
+background              = "$bg-muted"
+foreground              = "#FFFFFF"
+background-border-width = 0.0
+background-border-color = "transparent"
+foreground-border-width = 0.0
+foreground-border-color = "transparent"
+
+[toggler.toggled]
+background = "$primary"
+
+[slider]
+rail-width          = 4.0
+rail-border-radius  = 2.0
+rail-background-2   = "$bg-muted"
+handle-shape        = "circle"
+handle-radius       = 8.0
+handle-background   = "$text"
+handle-border-width = 2.0
+handle-border-color = "$primary"
+
+[slider.rail-background-1]
+angle = 90
+stops = [
+  { offset = 0.0, color = "$primary" },
+  { offset = 1.0, color = "$success" },
+]
+
+[radio]
+background   = "$bg-raised"
+dot-color    = "$primary"
+border-width = 1.0
+border-color = "$primary"
+
+[radio.selected]
+background = "#DDEEFF"

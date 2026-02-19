@@ -64,7 +64,7 @@ stops = [
   { offset = 1.0, color = "#4CAF50"  },
 ]
 
-# For more see the `theme.toml` in the example/ directory.
+# For more see `dark.toml` / `light.toml` in the example/ directory.
 ```
 
 Every widget section is optional.
@@ -151,6 +151,63 @@ Variables can themselves use color transformation expressions:
 | `[slider]`       | `hovered`, `dragged`                          |
 | `[text-input]`   | `focused`, `disabled`                         |
 | `[toggler]`      | `toggled`, `hovered`, `hovered-toggled`, `disabled`, `disabled-toggled` |
+
+## Switching themes at runtime
+
+Store multiple `ThemeConfig`s in your app state and read the active one from the `.theme()` closure each frame. Because the closure runs on every render, the theme switches instantly.
+
+```rust
+struct App {
+    is_dark: bool,
+    light: Arc<ThemeConfig>,
+    dark: Arc<ThemeConfig>,
+}
+
+impl App {
+    fn active_config(&self) -> &ThemeConfig {
+        if self.is_dark { &self.dark } else { &self.light }
+    }
+}
+```
+
+Wire the `.theme()` closure to read from state instead of capturing a fixed clone:
+
+```rust
+// Before (stale: won't reflect runtime changes):
+let theme = config.theme();
+.theme(move |_: &App| -> Theme { theme.clone() })
+
+// After (live: reads from state each frame):
+.theme(|state: &App| state.active_config().theme())
+```
+
+The `Arc` wrapper satisfies iced's `Fn` requirement on the boot closure.
+Both configs can be cloned cheaply into the initial state:
+
+```rust
+let light = Arc::new(ThemeConfig::from_file("light.toml").expect("…"));
+let dark  = Arc::new(ThemeConfig::from_file("dark.toml").expect("…"));
+
+let (boot_light, boot_dark) = (Arc::clone(&light), Arc::clone(&dark));
+iced::application(
+    move || App::new(Arc::clone(&boot_light), Arc::clone(&boot_dark)),
+    App::update,
+    App::view,
+)
+.theme(|state: &App| state.active_config().theme())
+```
+
+See `example/` for a complete demo with a toggler that switches between `light.toml` and `dark.toml`.
+
+## Embedding a theme in your binary
+
+To avoid shipping a separate `.toml` file alongside your binary, bake the theme in at compile time:
+
+```rust
+let config: ThemeConfig = include_str!("../theme.toml").parse().unwrap();
+```
+
+The `FromStr` impl on `ThemeConfig` accepts the same TOML content as `from_file`.
 
 ## License
 

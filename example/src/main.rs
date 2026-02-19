@@ -4,21 +4,27 @@ use iced::widget::{
     button, checkbox, column, container, progress_bar, radio, row, slider, text, text_input,
     toggler,
 };
-use iced::{Element, Length, Theme};
+use iced::{Element, Length};
 use iced_themer::{ThemeConfig, Themed};
 
 fn main() -> iced::Result {
-    let config = Arc::new(
-        ThemeConfig::from_file("example/theme.toml").expect("failed to load theme.toml"),
+    let light = Arc::new(
+        ThemeConfig::from_file("example/light.toml").expect("failed to load light.toml"),
+    );
+    let dark = Arc::new(
+        ThemeConfig::from_file("example/dark.toml").expect("failed to load dark.toml"),
     );
 
-    let theme = config.theme();
-    let font = config.font();
+    let font = dark.font();
 
-    let boot_config = Arc::clone(&config);
-    let app = iced::application(move || App::new(Arc::clone(&boot_config)), App::update, App::view)
-        .title("iced-themer Demo")
-        .theme(move |_: &App| -> Theme { theme.clone() });
+    let (boot_light, boot_dark) = (Arc::clone(&light), Arc::clone(&dark));
+    let app = iced::application(
+        move || App::new(Arc::clone(&boot_light), Arc::clone(&boot_dark)),
+        App::update,
+        App::view,
+    )
+    .title("iced-themer Demo")
+    .theme(|state: &App| state.active_config().theme());
 
     match font {
         Some(f) => app.default_font(f).run(),
@@ -29,10 +35,11 @@ fn main() -> iced::Result {
 struct App {
     input_value: String,
     is_checked: bool,
-    is_toggled: bool,
+    is_dark: bool,
     slider_value: f32,
     selected_option: Option<&'static str>,
-    config: Arc<ThemeConfig>,
+    light: Arc<ThemeConfig>,
+    dark: Arc<ThemeConfig>,
 }
 
 #[derive(Debug, Clone)]
@@ -46,15 +53,20 @@ enum Message {
 }
 
 impl App {
-    fn new(config: Arc<ThemeConfig>) -> Self {
+    fn new(light: Arc<ThemeConfig>, dark: Arc<ThemeConfig>) -> Self {
         Self {
             input_value: String::new(),
             is_checked: false,
-            is_toggled: false,
+            is_dark: true,
             slider_value: 50.0,
             selected_option: None,
-            config,
+            light,
+            dark,
         }
+    }
+
+    fn active_config(&self) -> &ThemeConfig {
+        if self.is_dark { &self.dark } else { &self.light }
     }
 
     fn update(&mut self, message: Message) {
@@ -62,45 +74,47 @@ impl App {
             Message::InputChanged(value) => self.input_value = value,
             Message::ButtonPressed => self.input_value.clear(),
             Message::CheckboxToggled(value) => self.is_checked = value,
-            Message::TogglerToggled(value) => self.is_toggled = value,
+            Message::TogglerToggled(value) => self.is_dark = value,
             Message::SliderChanged(value) => self.slider_value = value,
             Message::RadioSelected(value) => self.selected_option = Some(value),
         }
     }
 
     fn view(&self) -> Element<'_, Message> {
+        let cfg = self.active_config();
+
         let heading = text("iced-themer Demo").size(28);
 
         let input = text_input("Type something...", &self.input_value)
             .on_input(Message::InputChanged)
-            .themed(self.config.text_input());
+            .themed(cfg.text_input());
 
         let btn = button("Clear")
             .on_press(Message::ButtonPressed)
-            .themed(self.config.button());
+            .themed(cfg.button());
 
         let check = checkbox(self.is_checked)
             .label("Enable feature")
             .on_toggle(Message::CheckboxToggled)
-            .themed(self.config.checkbox());
+            .themed(cfg.checkbox());
 
-        let tog = toggler(self.is_toggled)
+        let tog = toggler(self.is_dark)
             .label("Dark mode")
             .on_toggle(Message::TogglerToggled)
-            .themed(self.config.toggler());
+            .themed(cfg.toggler());
 
         let sld = slider(0.0..=100.0, self.slider_value, Message::SliderChanged)
-            .themed(self.config.slider());
+            .themed(cfg.slider());
 
         let prog = progress_bar(0.0..=100.0, self.slider_value)
-            .themed(self.config.progress_bar());
+            .themed(cfg.progress_bar());
 
         let options = ["Option A", "Option B", "Option C"];
         let radios: Vec<Element<'_, Message>> = options
             .iter()
             .map(|&opt| {
                 radio(opt, opt, self.selected_option, Message::RadioSelected)
-                    .themed(self.config.radio())
+                    .themed(cfg.radio())
                     .into()
             })
             .collect();
@@ -126,7 +140,7 @@ impl App {
         container(content)
             .center_x(Length::Fill)
             .center_y(Length::Fill)
-            .themed(self.config.container())
+            .themed(cfg.container())
             .into()
     }
 }
