@@ -1,6 +1,6 @@
 # iced-themer
 
-> **Alpha software** — API will change. Not ready for production use.
+> **Alpha software**: API will change. Not ready for production use.
 
 Parse TOML theme files into iced's native `Theme` type at runtime, so you can tweak colors, fonts, and per-widget styles without recompiling.
 
@@ -58,7 +58,9 @@ stops = [
 # For more see the `theme.toml` in the example/ directory.
 ```
 
-Every widget section is optional — omit it and the iced default applies. Status sub-tables (`hovered`, `pressed`, etc.) inherit from the base and only override what they specify.
+Every widget section is optional. 
+Omit it and the iced default applies.
+Status sub-tables (`hovered`, `pressed`, etc.) inherit from the base and only override what they specify.
 
 ## Usage
 
@@ -102,7 +104,7 @@ impl App {
 }
 ```
 
-Each widget style type provides a `style_fn()` method that returns a closure ready for `.style()`. No manual status matching needed.
+Each widget style type provides a `style_fn()` method that returns a closure ready for `.style()`.
 
 ## Supported widgets
 
