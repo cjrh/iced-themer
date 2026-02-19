@@ -53,7 +53,7 @@ pub struct ProgressBarStyle(progress_bar::Style);
 
 impl ProgressBarStyle {
     /// Returns a closure suitable for passing to `.style()` on a progress bar widget.
-    pub fn style_fn(&self) -> impl Fn(&Theme) -> progress_bar::Style + Copy {
+    pub fn style_fn(&self) -> impl Fn(&Theme) -> progress_bar::Style + Copy + 'static {
         let s = self.0;
         move |_theme| s
     }

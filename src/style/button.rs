@@ -80,7 +80,7 @@ pub struct ButtonStyle {
 
 impl ButtonStyle {
     /// Returns a closure suitable for passing to `.style()` on a button widget.
-    pub fn style_fn(&self) -> impl Fn(&Theme, button::Status) -> button::Style + Copy {
+    pub fn style_fn(&self) -> impl Fn(&Theme, button::Status) -> button::Style + Copy + 'static {
         let s = *self;
         move |_theme, status| match status {
             button::Status::Active  => s.active,

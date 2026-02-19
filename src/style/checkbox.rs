@@ -102,7 +102,7 @@ pub struct CheckboxStyle {
 
 impl CheckboxStyle {
     /// Returns a closure suitable for passing to `.style()` on a checkbox widget.
-    pub fn style_fn(&self) -> impl Fn(&Theme, checkbox::Status) -> checkbox::Style + Copy {
+    pub fn style_fn(&self) -> impl Fn(&Theme, checkbox::Status) -> checkbox::Style + Copy + 'static {
         let s = *self;
         move |_theme, status| match status {
             checkbox::Status::Active { is_checked } => {

@@ -60,7 +60,7 @@ pub struct ContainerStyle(container::Style);
 
 impl ContainerStyle {
     /// Returns a closure suitable for passing to `.style()` on a container widget.
-    pub fn style_fn(&self) -> impl Fn(&Theme) -> container::Style + Copy {
+    pub fn style_fn(&self) -> impl Fn(&Theme) -> container::Style + Copy + 'static {
         let s = self.0;
         move |_theme| s
     }

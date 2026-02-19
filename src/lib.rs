@@ -80,22 +80,20 @@
 //! they specify.
 //!
 //! Unlike the palette, widget styles must be applied to each widget explicitly.
-//! Every style type has a [`style_fn()`] method that returns a closure you can
-//! pass straight to the widget's `.style()` builder:
+//! The [`Themed`] extension trait adds a `.themed(Option<&Style>)` method to
+//! every supported widget. Import it once and apply styles inline:
 //!
 //! ```no_run
 //! # use iced::widget::button;
-//! # use iced_themer::ThemeConfig;
+//! # use iced_themer::{ThemeConfig, Themed};
 //! # let config = ThemeConfig::from_file("theme.toml").unwrap();
-//! let mut btn = button("Click me").on_press(());
-//!
-//! if let Some(s) = config.button() {
-//!     btn = btn.style(s.style_fn());
-//! }
+//! let btn = button("Click me")
+//!     .on_press(())
+//!     .themed(config.button());
 //! ```
 //!
-//! The `if let Some` handles the case where the TOML file doesn't include a
-//! `[button]` section — the widget will just use the palette defaults.
+//! `.themed(None)` returns the widget unchanged, so missing TOML sections
+//! silently fall back to the palette defaults.
 //!
 //! [`style_fn()`]: style::ButtonStyle::style_fn
 //!
@@ -117,9 +115,11 @@ mod config;
 mod error;
 mod expr;
 pub mod style;
+pub mod themed;
 mod variables;
 
 pub use error::Error;
+pub use themed::Themed;
 
 use iced_core::font::Font;
 use iced_core::theme::Theme;

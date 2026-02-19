@@ -100,7 +100,7 @@ pub struct RadioStyle {
 
 impl RadioStyle {
     /// Returns a closure suitable for passing to `.style()` on a radio widget.
-    pub fn style_fn(&self) -> impl Fn(&Theme, radio::Status) -> radio::Style + Copy {
+    pub fn style_fn(&self) -> impl Fn(&Theme, radio::Status) -> radio::Style + Copy + 'static {
         let s = *self;
         move |_theme, status| match status {
             radio::Status::Active { is_selected } => {

@@ -115,7 +115,7 @@ pub struct SliderStyle {
 
 impl SliderStyle {
     /// Returns a closure suitable for passing to `.style()` on a slider widget.
-    pub fn style_fn(&self) -> impl Fn(&Theme, slider::Status) -> slider::Style + Copy {
+    pub fn style_fn(&self) -> impl Fn(&Theme, slider::Status) -> slider::Style + Copy + 'static {
         let s = *self;
         move |_theme, status| match status {
             slider::Status::Active  => s.active,

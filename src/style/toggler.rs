@@ -110,7 +110,7 @@ pub struct TogglerStyle {
 
 impl TogglerStyle {
     /// Returns a closure suitable for passing to `.style()` on a toggler widget.
-    pub fn style_fn(&self) -> impl Fn(&Theme, toggler::Status) -> toggler::Style + Copy {
+    pub fn style_fn(&self) -> impl Fn(&Theme, toggler::Status) -> toggler::Style + Copy + 'static {
         let s = *self;
         move |_theme, status| match status {
             toggler::Status::Active { is_toggled } => {

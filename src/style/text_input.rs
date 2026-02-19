@@ -79,7 +79,7 @@ impl TextInputStyle {
     ///
     /// The `Hovered` status maps to the active style, and `Focused { is_hovered: _ }`
     /// maps to the focused style, matching iced's status semantics.
-    pub fn style_fn(&self) -> impl Fn(&Theme, text_input::Status) -> text_input::Style + Copy {
+    pub fn style_fn(&self) -> impl Fn(&Theme, text_input::Status) -> text_input::Style + Copy + 'static {
         let s = *self;
         move |_theme, status| match status {
             text_input::Status::Active  => s.active,
